@@ -117,10 +117,10 @@ public:
         typename list<Elem>::iterator li;
         HashMap *parent;
     public:
-        iterator(size_t pos_ = 0, typename list<Elem>::iterator li_ = typename list<Elem>::iterator(), HashMap *par_ = nullptr)
+        iterator(size_t pos_ = 0, typename list<Elem>::iterator li_ = typename list<Elem>::iterator(), HashMap *parent_ = nullptr)
             : pos(pos_)
             , li(li_)
-            , parent(par_)
+            , parent(parent_)
             {}
 
         iterator operator++() {
@@ -176,10 +176,10 @@ public:
         listIterConst li;
         const HashMap *parent;
     public:
-        const_iterator(size_t pos_ = 0, listIterConst li_ = listIterConst(), const HashMap *par_ = nullptr)
+        const_iterator(size_t pos_ = 0, listIterConst li_ = listIterConst(), const HashMap *parent_ = nullptr)
             : pos(pos_)
             , li(li_)
-            , parent(par_)
+            , parent(parent_)
             {}
 
         const_iterator operator++() {
