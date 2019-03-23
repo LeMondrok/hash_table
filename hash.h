@@ -16,8 +16,8 @@ private:
     Table htable;
     Hash hsfunc;
 
-    static constexpr size_t mult = {4};
-    static constexpr double maxcapresize = {0.5};
+    static constexpr size_t mult = 4;
+    static constexpr double maxcapresize = 0.5;
     size_t sz = 0, capacity = 128;
 
 public:
