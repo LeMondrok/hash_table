@@ -16,46 +16,53 @@ private:
     Table htable;
     Hash hsfunc;
 
-    static constexpr size_t mult = 4;
+    static constexpr size_t multiplier = 4;
     static constexpr double maxcapresize = 0.5;
-    size_t sz = 0, capacity = 128;
+    static constexpr size_t initcapacity = 128;
+    size_t sz = 0, capacity = initcapacity;
 
 public:
     HashMap() {
-        htable = Table(capacity);
+        htable = Table(initcapacity);
         sz = 0;
+    }
+    
+    void check_resize() {
+        if ((double)capacity * maxcapresize > sz)
+            return;
+        else
+            resize();
     }
 
     void resize() {
-        if ((double)capacity * maxcapresize > sz)
-            return;
+        
 
-        vector<Elem> queuElem;
-        queuElem.reserve(sz);
+        vector<Elem> queryelem;
+        queryelem.reserve(sz);
 
-        for (auto i = begin(); i != end(); ++i) {
-            queuElem.emplace_back(*i);
+        for (auto it = begin(); it != end(); ++it) {
+            queryelem.emplace_back(*it);
         }
 
         clear();
 
-        capacity *= mult;
+        capacity *= multiplier;
         htable = Table(capacity);
 
-        for (size_t i = 0; i < queuElem.size(); ++i) {
-            insert(queuElem[i]);
+        for (size_t i = 0; i < queryelem.size(); ++i) {
+            insert(queryelem[i]);
         }
     }
 
     explicit HashMap(const Hash& h)
-        : htable (Table(128))
+        : htable (Table(initcapacity))
         , hsfunc(h)
         , sz(0)
         {}
 
     template <typename Iter>
     HashMap(Iter begin, Iter end, const Hash& h = Hash()) {
-        htable = Table(128);
+        htable = Table(initcapacity);
         hsfunc = h;
         sz = 0;
 
@@ -64,7 +71,7 @@ public:
     }
 
     HashMap(std::initializer_list<Elem> init, Hash h = Hash()) {
-        htable = Table(128);
+        htable = Table(initcapacity);
         hsfunc = h;
         sz = 0;
 
@@ -73,27 +80,27 @@ public:
     }
 
 
-    void insert(const Elem &el) {
-        size_t pos = hsfunc(el.first) % capacity;
+    void insert(const Elem &element) {
+        size_t pos = hsfunc(element.first) % capacity;
 
         for (auto i : htable[pos]) {
-            if (i.first == el.first)
+            if (i.first == element.first)
                 return;
         }
 
         sz++;
 
-        htable[pos].push_back(el);
+        htable[pos].push_back(element);
 
-        resize();
+        check_resize();
     }
 
     void erase(const KeyType key) {
         size_t pos = hsfunc(key) % capacity;
 
-        for (typename list<Elem>::iterator i = htable[pos].begin(); i != htable[pos].end(); ++i) {
-            if (i->first == key) {
-                htable[pos].erase(i);
+        for (typename list<Elem>::iterator it = htable[pos].begin(); it != htable[pos].end(); ++it) {
+            if (it->first == key) {
+                htable[pos].erase(it);
 
                 sz--;
 
