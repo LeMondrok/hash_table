@@ -10,19 +10,19 @@ using std::list;
 
 template<class KeyType, class ValueType, class Hash = hash<KeyType>> class HashMap {
 private:
-    using elem = pair<const KeyType, ValueType>;
-    using HashTable = vector<list<elem>>;
+    using Elem = pair<const KeyType, ValueType>;
+    using Table = vector<list<Elem>>;
 
-    HashTable htable;
+    Table htable;
     Hash hsfunc;
 
-    const size_t mult = 4;
-    const double maxcapresize = 0.5;
+    static constexpr size_t mult = {4};
+    static constexpr double maxcapresize = {0.5};
     size_t sz = 0, capacity = 128;
 
 public:
     HashMap() {
-        htable = HashTable(capacity);
+        htable = Table(capacity);
         sz = 0;
     }
 
@@ -30,7 +30,7 @@ public:
         if ((double)capacity * maxcapresize > sz)
             return;
 
-        vector<elem> queuElem;
+        vector<Elem> queuElem;
         queuElem.reserve(sz);
 
         for (auto i = begin(); i != end(); ++i) {
@@ -40,7 +40,7 @@ public:
         clear();
 
         capacity *= mult;
-        htable = HashTable(capacity);
+        htable = Table(capacity);
 
         for (size_t i = 0; i < queuElem.size(); ++i) {
             insert(queuElem[i]);
@@ -48,14 +48,14 @@ public:
     }
 
     explicit HashMap(const Hash& h)
-        : htable (HashTable(128))
+        : htable (Table(128))
         , hsfunc(h)
         , sz(0)
         {}
 
     template <typename Iter>
     HashMap(Iter begin, Iter end, const Hash& h = Hash()) {
-        htable = HashTable(128);
+        htable = Table(128);
         hsfunc = h;
         sz = 0;
 
@@ -63,8 +63,8 @@ public:
             this->insert(*it);
     }
 
-    HashMap(std::initializer_list<elem> init, Hash h = Hash()) {
-        htable = HashTable(128);
+    HashMap(std::initializer_list<Elem> init, Hash h = Hash()) {
+        htable = Table(128);
         hsfunc = h;
         sz = 0;
 
@@ -73,7 +73,7 @@ public:
     }
 
 
-    void insert(const elem &el) {
+    void insert(const Elem &el) {
         size_t pos = hsfunc(el.first) % capacity;
 
         for (auto i : htable[pos]) {
@@ -91,7 +91,7 @@ public:
     void erase(const KeyType key) {
         size_t pos = hsfunc(key) % capacity;
 
-        for (typename list<elem>::iterator i = htable[pos].begin(); i != htable[pos].end(); ++i) {
+        for (typename list<Elem>::iterator i = htable[pos].begin(); i != htable[pos].end(); ++i) {
             if (i->first == key) {
                 htable[pos].erase(i);
 
@@ -107,10 +107,10 @@ public:
     class iterator {
     private:
         size_t pos;
-        typename list<elem>::iterator li;
+        typename list<Elem>::iterator li;
         HashMap *parent;
     public:
-        iterator(size_t pos_ = 0, typename list<elem>::iterator li_ = typename list<elem>::iterator(), HashMap *par_ = nullptr)
+        iterator(size_t pos_ = 0, typename list<Elem>::iterator li_ = typename list<Elem>::iterator(), HashMap *par_ = nullptr)
             : pos(pos_)
             , li(li_)
             , parent(par_)
@@ -145,11 +145,11 @@ public:
             return temp;
         }
 
-        elem& operator*() {
+        Elem& operator*() {
             return *li;
         }
 
-        typename list<elem>::iterator operator->() {
+        typename list<Elem>::iterator operator->() {
             return li;
         }
 
@@ -168,7 +168,7 @@ public:
     class const_iterator {
     private:
         size_t pos;
-        typedef typename list<elem>::const_iterator listIterConst;
+        typedef typename list<Elem>::const_iterator listIterConst;
         listIterConst li;
         const HashMap *parent;
     public:
@@ -207,7 +207,7 @@ public:
         }
 
 
-        const elem& operator*() {
+        const Elem& operator*() {
             return *li;
         }
 
@@ -277,7 +277,7 @@ public:
     iterator find(const KeyType& key) {
         size_t pos = hsfunc(key) % capacity;
 
-        for (typename list<elem>::iterator i = htable[pos].begin(); i != htable[pos].end(); ++i) {
+        for (typename list<Elem>::iterator i = htable[pos].begin(); i != htable[pos].end(); ++i) {
             if (i->first == key) {
                 return iterator(pos, i, this);
             }
@@ -289,7 +289,7 @@ public:
     const_iterator find(const KeyType& key) const {
         size_t pos = hsfunc(key) % capacity;
 
-        for (typename list<elem>::const_iterator i = htable[pos].begin(); i != htable[pos].end(); ++i) {
+        for (typename list<Elem>::const_iterator i = htable[pos].begin(); i != htable[pos].end(); ++i) {
             if (i->first == key) {
                 return const_iterator(pos, i, this);
             }
@@ -325,7 +325,7 @@ public:
     }
 
     HashMap& operator=(const HashMap& cpy) {
-        htable = HashTable(cpy.htable);
+        htable = Table(cpy.htable);
 
         sz = cpy.sz;
         hsfunc = cpy.hsfunc;
