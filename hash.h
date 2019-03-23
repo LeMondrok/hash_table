@@ -14,7 +14,7 @@ private:
     using Table = vector<list<Elem>>;
 
     Table htable;
-    Hash hsfunc;
+    Hash hashfunction;
 
     static constexpr size_t multiplier = 4;
     static constexpr double maxcapresize = 0.5;
@@ -56,14 +56,14 @@ public:
 
     explicit HashMap(const Hash& h)
         : htable (Table(initcapacity))
-        , hsfunc(h)
+        , hashfunction(h)
         , sz(0)
         {}
 
     template <typename Iter>
     HashMap(Iter begin, Iter end, const Hash& h = Hash()) {
         htable = Table(initcapacity);
-        hsfunc = h;
+        hashfunction = h;
         sz = 0;
 
         for (auto it = begin; it != end; ++it)
@@ -72,7 +72,7 @@ public:
 
     HashMap(std::initializer_list<Elem> init, Hash h = Hash()) {
         htable = Table(initcapacity);
-        hsfunc = h;
+        hashfunction = h;
         sz = 0;
 
         for (const auto& item : init)
@@ -81,7 +81,7 @@ public:
 
 
     void insert(const Elem &element) {
-        size_t pos = hsfunc(element.first) % capacity;
+        size_t pos = hashfunction(element.first) % capacity;
 
         for (auto i : htable[pos]) {
             if (i.first == element.first)
@@ -96,7 +96,7 @@ public:
     }
 
     void erase(const KeyType key) {
-        size_t pos = hsfunc(key) % capacity;
+        size_t pos = hashfunction(key) % capacity;
 
         for (typename list<Elem>::iterator it = htable[pos].begin(); it != htable[pos].end(); ++it) {
             if (it->first == key) {
@@ -161,10 +161,7 @@ public:
         }
 
         bool operator ==(iterator it) {
-            if (pos == it.pos && li == it.li)
-                return true;
-            else
-                return false;
+            return (pos == it.pos && li == it.li);
         }
 
         bool operator !=(iterator it) {
@@ -278,11 +275,11 @@ public:
     }
 
     Hash hash_function() const {
-        return hsfunc;
+        return hashfunction;
     }
 
     iterator find(const KeyType& key) {
-        size_t pos = hsfunc(key) % capacity;
+        size_t pos = hashfunction(key) % capacity;
 
         for (typename list<Elem>::iterator i = htable[pos].begin(); i != htable[pos].end(); ++i) {
             if (i->first == key) {
@@ -294,7 +291,7 @@ public:
     }
 
     const_iterator find(const KeyType& key) const {
-        size_t pos = hsfunc(key) % capacity;
+        size_t pos = hashfunction(key) % capacity;
 
         for (typename list<Elem>::const_iterator i = htable[pos].begin(); i != htable[pos].end(); ++i) {
             if (i->first == key) {
@@ -335,7 +332,7 @@ public:
         htable = Table(cpy.htable);
 
         sz = cpy.sz;
-        hsfunc = cpy.hsfunc;
+        hashfunction = cpy.hashfunction;
 
         return *this;
     }
