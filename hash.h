@@ -273,7 +273,7 @@ public:
     }
 
     size_t size() const {
-        return sz * 1;
+        return sz;
     }
 
     bool empty() const {
