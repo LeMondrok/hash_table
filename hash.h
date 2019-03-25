@@ -16,8 +16,8 @@ private:
     Table htable;
     Hash hashfunction;
 
-    static constexpr size_t multiplier = 4;
-    static constexpr double maxcapresize = 0.5;
+    static constexpr size_t capmultiplier = 8;
+    static constexpr double maxcapresize = 0.5, mincapresize = 0.1;
     static constexpr size_t initcapacity = 128;
     size_t sz = 0, capacity = initcapacity;
 
@@ -26,17 +26,18 @@ public:
         htable = Table(initcapacity);
         sz = 0;
     }
-    
+
     void check_resize() {
-        if ((double)capacity * maxcapresize > sz)
+        if (sz != 0) {
+            if ((double)capacity * maxcapresize < sz ||
+                (double)capacity * mincapresize > sz)
+                resize();
+        } else {
             return;
-        else
-            resize();
+        }
     }
 
     void resize() {
-        
-
         vector<Elem> queryelem;
         queryelem.reserve(sz);
 
@@ -46,11 +47,13 @@ public:
 
         clear();
 
-        capacity *= multiplier;
+        sz = queryelem.size();
+        capacity = sz * capmultiplier;
         htable = Table(capacity);
 
+
         for (size_t i = 0; i < queryelem.size(); ++i) {
-            insert(queryelem[i]);
+            reinsert(queryelem[i]);
         }
     }
 
@@ -77,6 +80,12 @@ public:
 
         for (const auto& item : init)
             this->insert(item);
+    }
+
+    void reinsert(const Elem &element) {
+        size_t pos = hashfunction(element.first) % capacity;
+
+        htable[pos].push_back(element);
     }
 
 
@@ -264,7 +273,7 @@ public:
     }
 
     size_t size() const {
-        return sz;
+        return sz * 1;
     }
 
     bool empty() const {
