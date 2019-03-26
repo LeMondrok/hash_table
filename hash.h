@@ -9,64 +9,74 @@ using std::vector;
 using std::list;
 
 template<class KeyType, class ValueType, class Hash = hash<KeyType>> class HashMap {
-private:
+public:
+    static const size_t CAPACITY_MULTIPLIER = 8;
+    static constexpr double MAX_CAPACITY_RESIZE = 0.5;
+    static constexpr double MIN_CAPACITY_RESIZE = 0.1;
+    static const size_t INIT_CAPACITY = 128;
+
     using Elem = pair<const KeyType, ValueType>;
     using Table = vector<list<Elem>>;
 
-    Table htable;
-    Hash hashfunction;
-
-    static constexpr size_t capmultiplier = 8;
-    static constexpr double maxcapresize = 0.5, mincapresize = 0.1;
-    static constexpr size_t initcapacity = 128;
-    size_t sz = 0, capacity = initcapacity;
-
-public:
     HashMap() {
-        htable = Table(initcapacity);
+        hTable = Table(INIT_CAPACITY);
         sz = 0;
     }
 
     void check_resize() {
         if (sz != 0) {
-            if ((double)capacity * maxcapresize < sz ||
-                (double)capacity * mincapresize > sz)
+            if ((double)capacity * MAX_CAPACITY_RESIZE < sz ||
+                (double)capacity * MIN_CAPACITY_RESIZE > sz)
                 resize();
         } else {
             return;
         }
     }
 
+    void check_insert() {
+        if ((double)capacity * MAX_CAPACITY_RESIZE < sz)
+            resize();
+        else
+            return;
+    }
+
+    void check_erase() {
+        if ((double)capacity * MIN_CAPACITY_RESIZE > sz)
+            resize();
+        else
+            return;
+    }
+
     void resize() {
-        vector<Elem> queryelem;
-        queryelem.reserve(sz);
+        vector<Elem> queryElem;
+        queryElem.reserve(sz);
 
         for (auto it = begin(); it != end(); ++it) {
-            queryelem.emplace_back(*it);
+            queryElem.emplace_back(*it);
         }
 
         clear();
 
-        sz = queryelem.size();
-        capacity = sz * capmultiplier;
-        htable = Table(capacity);
+        sz = queryElem.size();
+        capacity = sz * CAPACITY_MULTIPLIER;
+        hTable = Table(capacity);
 
 
-        for (size_t i = 0; i < queryelem.size(); ++i) {
-            reinsert(queryelem[i]);
+        for (size_t i = 0; i < queryElem.size(); ++i) {
+            reinsert(queryElem[i]);
         }
     }
 
     explicit HashMap(const Hash& h)
-        : htable (Table(initcapacity))
-        , hashfunction(h)
+        : hTable (Table(INIT_CAPACITY))
+        , hashFunction(h)
         , sz(0)
         {}
 
     template <typename Iter>
     HashMap(Iter begin, Iter end, const Hash& h = Hash()) {
-        htable = Table(initcapacity);
-        hashfunction = h;
+        hTable = Table(INIT_CAPACITY);
+        hashFunction = h;
         sz = 0;
 
         for (auto it = begin; it != end; ++it)
@@ -74,8 +84,8 @@ public:
     }
 
     HashMap(std::initializer_list<Elem> init, Hash h = Hash()) {
-        htable = Table(initcapacity);
-        hashfunction = h;
+        hTable = Table(INIT_CAPACITY);
+        hashFunction = h;
         sz = 0;
 
         for (const auto& item : init)
@@ -83,35 +93,37 @@ public:
     }
 
     void reinsert(const Elem &element) {
-        size_t pos = hashfunction(element.first) % capacity;
+        size_t pos = hashFunction(element.first) % capacity;
 
-        htable[pos].push_back(element);
+        hTable[pos].push_back(element);
     }
 
 
     void insert(const Elem &element) {
-        size_t pos = hashfunction(element.first) % capacity;
+        size_t pos = hashFunction(element.first) % capacity;
 
-        for (auto i : htable[pos]) {
+        for (auto i : hTable[pos]) {
             if (i.first == element.first)
                 return;
         }
 
         sz++;
 
-        htable[pos].push_back(element);
+        hTable[pos].push_back(element);
 
-        check_resize();
+        check_insert();
     }
 
     void erase(const KeyType key) {
-        size_t pos = hashfunction(key) % capacity;
+        size_t pos = hashFunction(key) % capacity;
 
-        for (typename list<Elem>::iterator it = htable[pos].begin(); it != htable[pos].end(); ++it) {
+        for (typename list<Elem>::iterator it = hTable[pos].begin(); it != hTable[pos].end(); ++it) {
             if (it->first == key) {
-                htable[pos].erase(it);
+                hTable[pos].erase(it);
 
                 sz--;
+
+                check_erase();
 
                 return;
             }
@@ -135,18 +147,18 @@ public:
         iterator operator++() {
             li++;
 
-            if (li == parent->htable[pos].end()) {
+            if (li == parent->hTable[pos].end()) {
                 ++pos;
 
-                while (pos < parent->htable.size() && parent->htable[pos].size() == 0) {
+                while (pos < parent->hTable.size() && parent->hTable[pos].size() == 0) {
                     ++pos;
                 }
 
-                if (pos == parent->htable.size()) {
+                if (pos == parent->hTable.size()) {
                     --pos;
-                    li = parent->htable[pos].end();
+                    li = parent->hTable[pos].end();
                 } else {
-                    li = parent->htable[pos].begin();
+                    li = parent->hTable[pos].begin();
                 }
             }
 
@@ -194,17 +206,17 @@ public:
         const_iterator operator++() {
             li++;
 
-            if (li == parent->htable[pos].end()) {
+            if (li == parent->hTable[pos].end()) {
                 ++pos;
 
-                while (pos < parent->htable.size() && parent->htable[pos].size() == 0)
+                while (pos < parent->hTable.size() && parent->hTable[pos].size() == 0)
                     ++pos;
 
-                if (pos == parent->htable.size()) {
+                if (pos == parent->hTable.size()) {
                     --pos;
-                    li = parent->htable[pos].end();
+                    li = parent->hTable[pos].end();
                 } else {
-                    li = parent->htable[pos].begin();
+                    li = parent->hTable[pos].begin();
                 }
             }
 
@@ -243,33 +255,33 @@ public:
     iterator begin() {
         size_t pos = 0;
 
-        while (pos < capacity && htable[pos].empty() == 1)
+        while (pos < capacity && hTable[pos].empty() == 1)
             ++pos;
 
         if (pos == capacity)
             return end();
 
-        else return iterator(pos, htable[pos].begin(), this);
+        else return iterator(pos, hTable[pos].begin(), this);
     }
 
     const_iterator begin() const {
         size_t pos = 0;
 
-        while (pos < capacity && htable[pos].empty() == 1)
+        while (pos < capacity && hTable[pos].empty() == 1)
             ++pos;
 
         if (pos == capacity)
             return end();
 
-        return const_iterator(pos, htable[pos].begin(), this);
+        return const_iterator(pos, hTable[pos].begin(), this);
     }
 
     iterator end() {
-        return iterator(capacity - 1, htable.back().end(), this);
+        return iterator(capacity - 1, hTable.back().end(), this);
     }
 
     const_iterator end() const {
-        return const_iterator(capacity - 1, htable[capacity - 1].end(), this);
+        return const_iterator(capacity - 1, hTable[capacity - 1].end(), this);
     }
 
     size_t size() const {
@@ -277,20 +289,17 @@ public:
     }
 
     bool empty() const {
-        if (sz == 0)
-            return 1;
-        else
-            return 0;
+        return (sz == 0);
     }
 
     Hash hash_function() const {
-        return hashfunction;
+        return hashFunction;
     }
 
     iterator find(const KeyType& key) {
-        size_t pos = hashfunction(key) % capacity;
+        size_t pos = hashFunction(key) % capacity;
 
-        for (typename list<Elem>::iterator i = htable[pos].begin(); i != htable[pos].end(); ++i) {
+        for (typename list<Elem>::iterator i = hTable[pos].begin(); i != hTable[pos].end(); ++i) {
             if (i->first == key) {
                 return iterator(pos, i, this);
             }
@@ -300,9 +309,9 @@ public:
     }
 
     const_iterator find(const KeyType& key) const {
-        size_t pos = hashfunction(key) % capacity;
+        size_t pos = hashFunction(key) % capacity;
 
-        for (typename list<Elem>::const_iterator i = htable[pos].begin(); i != htable[pos].end(); ++i) {
+        for (typename list<Elem>::const_iterator i = hTable[pos].begin(); i != hTable[pos].end(); ++i) {
             if (i->first == key) {
                 return const_iterator(pos, i, this);
             }
@@ -331,18 +340,24 @@ public:
 
     void clear() {
         for (size_t i = 0; i < capacity; ++i) {
-            htable[i].erase(htable[i].begin(), htable[i].end());
+            hTable[i].erase(hTable[i].begin(), hTable[i].end());
         }
 
         sz = 0;
     }
 
     HashMap& operator=(const HashMap& cpy) {
-        htable = Table(cpy.htable);
+        hTable = Table(cpy.hTable);
 
         sz = cpy.sz;
-        hashfunction = cpy.hashfunction;
+        hashFunction = cpy.hashFunction;
 
         return *this;
     }
+
+private:
+    Table hTable;
+    Hash hashFunction;
+
+    size_t sz = 0, capacity = INIT_CAPACITY;
 };
