@@ -27,27 +27,27 @@ public:
         if (sz != 0) {
             if ((double)capacity * MAX_CAPACITY_RESIZE < sz ||
                 (double)capacity * MIN_CAPACITY_RESIZE > sz)
-                resize();
+                resize(sz * CAPACITY_MULTIPLIER);
         } else {
             return;
         }
     }
 
     void check_insert() {
-        if ((double)capacity * MAX_CAPACITY_RESIZE < sz)
-            resize();
+        if (sz != 0 && (double)capacity * MAX_CAPACITY_RESIZE < sz)
+            resize(sz * CAPACITY_MULTIPLIER);
         else
             return;
     }
 
     void check_erase() {
-        if ((double)capacity * MIN_CAPACITY_RESIZE > sz)
-            resize();
+        if (sz != 0 && (double)capacity * MIN_CAPACITY_RESIZE > sz)
+            resize(sz * CAPACITY_MULTIPLIER);
         else
             return;
     }
 
-    void resize() {
+    void resize(size_t resizeCapacity) {
         vector<Elem> queryElem;
         queryElem.reserve(sz);
 
@@ -58,7 +58,7 @@ public:
         clear();
 
         sz = queryElem.size();
-        capacity = sz * CAPACITY_MULTIPLIER;
+        capacity = resizeCapacity;
         hTable = Table(capacity);
 
 
