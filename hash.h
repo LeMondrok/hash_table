@@ -28,23 +28,17 @@ public:
             if ((double)capacity * MAX_CAPACITY_RESIZE < sz ||
                 (double)capacity * MIN_CAPACITY_RESIZE > sz)
                 resize(sz * CAPACITY_MULTIPLIER);
-        } else {
-            return;
         }
     }
 
     void check_insert() {
         if (sz != 0 && (double)capacity * MAX_CAPACITY_RESIZE < sz)
             resize(sz * CAPACITY_MULTIPLIER);
-        else
-            return;
     }
 
     void check_erase() {
         if (sz != 0 && (double)capacity * MIN_CAPACITY_RESIZE > sz)
             resize(sz * CAPACITY_MULTIPLIER);
-        else
-            return;
     }
 
     void resize(size_t resizeCapacity) {
@@ -128,8 +122,6 @@ public:
                 return;
             }
         }
-
-        return;
     }
 
     class iterator {
@@ -260,8 +252,8 @@ public:
 
         if (pos == capacity)
             return end();
-
-        else return iterator(pos, hTable[pos].begin(), this);
+        else 
+            return iterator(pos, hTable[pos].begin(), this);
     }
 
     const_iterator begin() const {
